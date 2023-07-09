@@ -2,6 +2,8 @@ module.exports.successCode = 200;
 module.exports.regex = /https?:\/\/(www)?[a-z0-9\-._~:/?#[\]@!$&'()*+,;=]*/i;
 
 module.exports.allowedCors = [
+  'https://movies.explorer.16.nomoredomains.work',
+  'http://movies.explorer.16.nomoredomains.work',
   'http://localhost:3000',
   'http://localhost:3001',
 ];
