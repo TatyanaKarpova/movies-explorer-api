@@ -8,9 +8,10 @@ const errorHandler = require('./middlewares/error-handler');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const cors = require('./middlewares/cors');
 const router = require('./routes/index');
-const { DB_URL } = require('./utils/config');
+const { DB_LOCAL } = require('./utils/config');
+const { crashTestErrorMessage } = require('./utils/constants');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, DB_URL = DB_LOCAL } = process.env;
 
 const app = express();
 
@@ -26,7 +27,7 @@ app.use(requestLogger);
 
 app.get('/crash-test', () => {
   setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
+    throw new Error(crashTestErrorMessage);
   }, 0);
 });
 

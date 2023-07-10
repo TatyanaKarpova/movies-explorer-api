@@ -3,12 +3,21 @@ const NotFoundError = require('../errors/notFoundError');
 const ForbiddenError = require('../errors/forbiddenError');
 const InternalServerError = require('../errors/internalServerError');
 const BadRequestError = require('../errors/badRequestError');
+const {
+  createdCode,
+  successCode,
+  internalServerErrorMessage,
+  movieNotFoundErrorMessage,
+  validationBadRequestErrorMessage,
+  movieDeleteForbiddenErrorMessage,
+} = require('../utils/constants');
 
 module.exports.getMovies = (req, res, next) => {
-  Movie.find({})
-    .then((movies) => res.send(movies))
+  Movie.find({ owner: req.user._id })
+    .orFail(() => new NotFoundError(movieNotFoundErrorMessage))
+    .then((movies) => res.status(successCode).send(movies))
     .catch(() => {
-      next(new InternalServerError('На сервере произошла ошибка при получении данных о фильмах'));
+      next(new InternalServerError(internalServerErrorMessage));
     });
 };
 
@@ -42,10 +51,10 @@ module.exports.createMovie = (req, res, next) => {
     nameRU,
     nameEN,
   })
-    .then((movie) => res.send({ data: movie }))
+    .then((movie) => res.status(createdCode).send({ data: movie }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании фильма'));
+        next(new BadRequestError(validationBadRequestErrorMessage));
       } else {
         next(err);
       }
@@ -56,12 +65,12 @@ module.exports.deleteMovie = (req, res, next) => {
   Movie.findById(req.params.movieId)
     .then((movie) => {
       if (!movie) {
-        throw new NotFoundError('По переданному id отсутствуют данные');
+        throw new NotFoundError(movieNotFoundErrorMessage);
       } else if (req.user._id !== movie.owner._id.toString()) {
-        next(new ForbiddenError('Недостаточно прав на удаление фильма'));
+        next(new ForbiddenError(movieDeleteForbiddenErrorMessage));
       } else {
         movie.remove()
-          .then(() => res.send({ data: movie }))
+          .then(() => res.status(successCode).send({ data: movie }))
           .catch(next);
       }
     })
